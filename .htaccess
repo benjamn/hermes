@@ -1,0 +1,2 @@
+# Absolute path from document root to zeus.py:
+ErrorDocument 404 /js/zeus.py
