@@ -41,9 +41,9 @@
         if (!e.exports) {
             if (e.module) try {
                 log("evaluating", id);
-                entry(id).module(function(rel_id) {
-                    return require(absolutize(rel_id, id)) || raise(entry(id));
-                }, entry(id).exports = {});
+                e.module(function(rel_id) {
+                    return require(absolutize(rel_id, id)) || raise(e);
+                }, e.exports = {});
                 log("completed", id);
                 retry();
             } catch (x) {
