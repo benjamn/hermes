@@ -25,7 +25,7 @@
         }
 
     function log() {
-        try { global.console.log.apply(global.console, arguments) }
+        try { console.log.apply(console, arguments) }
         catch (x) {}
     }
 
@@ -41,7 +41,7 @@
         if (!e.exports) {
             if (e.module) try {
                 log("evaluating", id);
-                e.module(function(rel_id) {
+                (1,e.module)(function(rel_id) {
                     return require(absolutize(rel_id, id)) || raise(e);
                 }, e.exports = {});
                 log("completed", id);
@@ -87,10 +87,10 @@
     }
 
     function receive() {
-        var id, ids = global.exports;
-        global.exports = null;
+        var id, ids = global["exports"];
+        global["exports"] = null;
         for (id in ids) {
-            log("received ", id);
+            log("received", id);
             entry(id).module = entry(id).module || ids[id];
         }
         retry();
