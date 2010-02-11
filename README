@@ -2,23 +2,19 @@ To use hermes.js, include the following <script> tag in an HTML document,
 changing the attribute values as appropriate:
 
   <script src="http://somewhere.com/path/to/hermes.js"
-          lib="http://anywhere.net/module/root/directory"
-          require="absolute/id/of/initial/module"
-          onload="use(this)">
+          require="/module/root/directory#absolute/module/id">
   </script>
 
 Since hermes.js is a static file, you can load it from anywhere.  The more
 people who load it from the same place, the more likely it is to be cached
 when a user visits your site.  That's always nice.
 
-The "lib" attribute should name the directory that contains zeus.py and
-.htaccess.  This directory does not have to be hosted at the same domain as
-hermes.js.
+The "require" attribute provides two pieces of information, delimited by
+the '#' character.  The first should be a URL pointing to the directory
+that contains zeus.py.  This directory does not have to be hosted at the
+same domain as hermes.js.  The second half of the attribute is the
+absolute id of the first module to load.
 
-The "onload" attribute is boilerplate.  After long consideration, I think
-it's the most reliable way to tell hermes.js about the <script> tag that
-loaded it, so that hermes.js can examine the "lib" and "require"
-attributes.  In case you're curious, hermes.js sets window.use, saving the
-old value, and window.use replaces the old value when called.  Since the
-onload handler fires synchronously after script execution, the window.use
-function is never externally observable.
+If one were to replace the '#' in the "require" attribute with a '/', and
+append ".min.js", the resulting URI would identify the JavaScript file
+containing the initial module.
