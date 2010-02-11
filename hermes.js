@@ -8,24 +8,26 @@
     *          version of this file without notification is considered
     *          poor sportsmanship and a violation of the license terms.
     */
-    var create = "createElement",
-        absolutizer = doc[create]("script"),
-        head = doc.documentElement.firstChild,
-        lib, first_id, // Set in global.use below.
-        required = {},
-        saved_use = global.use;
+    var gebtn = "getElementsByTagName",
+        head = doc[gebtn]("head").item(0),
+        nodeName = "script",
+        script, scripts = doc[gebtn](nodeName),
+        i = scripts.length,
+        attr = "require",
+        lib_id,
+        required = {};
+
+    while (script = scripts.item(--i))
+        if (lib_id = script.getAttribute(attr)) {
+            lib_id = lib_id.split("#");
+            script.removeAttribute(attr);
+            break;
+        }
 
     function log() {
         try { global.console.log.apply(global.console, arguments) }
         catch (x) {}
     }
-    
-    global.use = function(script) {
-        global.use = saved_use;
-        lib = script.getAttribute("lib");
-        first_id = script.getAttribute("require");
-        lib && first_id && require(first_id);
-    };
 
     function entry(id) {
         return entry[id="#"+id] || (entry[id] = {});
@@ -38,7 +40,10 @@
         var e = entry(id);
         if (!e.exports) {
             if (e.module) try {
-                evaluate(id);
+                log("evaluating", id);
+                entry(id).module(function(rel_id) {
+                    return require(absolutize(rel_id, id)) || raise(entry(id));
+                }, entry(id).exports = {});
                 log("completed", id);
                 retry();
             } catch (x) {
@@ -48,49 +53,49 @@
                        : raise(x);
             } else if (!e.requested) {
                 (required[id] = e).requested = 1;
-                request(id);
+                log("requesting", id);
+                var script = doc.createElement(nodeName);
+                try { script.addEventListener("load", receive, false) }
+                catch (x) {
+                    script.attachEvent("onreadystatechange", function() {
+                        /loaded|complete/.test(script.readyState) && receive();
+                    });
+                }
+                script.src = lib_id[0] + "/" + id + ".min.js";
+                head.appendChild(script);
             }
         }
         return e.exports;
     }
 
-    function evaluate(id) {
-        log("evaluating", id);
-        entry(id).module(function(rel_id) {
-            return (require(rel_id[0] == "."
-                            ? (absolutizer.src = "/" + id + "/../" + rel_id,
-                               absolutizer.src.split("/").slice(3).join("/"))
-                            : rel_id) ||
-                    raise(entry(id)));
-        }, entry(id).exports = {});
-    }
-
-    function request(id) {
-        log("requesting", id);
-        var script = doc[create]("script");
-        script.src = lib + "/" + id + ".min.js";
-        try { script.addEventListener("load", receive, false) }
-        catch (x) { script.attachEvent("onload", receive) }
-        head.appendChild(script);
+    function absolutize(rel_id, abs_id) {
+        if (/^\./.test(rel_id)) {
+            rel_id = abs_id + "/../" + rel_id;
+            while (rel_id != (abs_id = rel_id.replace(/[^\/]+\/\.\.\/|\.\//, "")))
+                rel_id = abs_id;
+        }
+        return rel_id;
     }
 
     function retry() {
-        var ids = required;
+        var id, ids = required;
         required = {};
-        for (var id in ids) {
+        for (id in ids) {
             log("retrying", id);
             require(id);
         }
     }
 
     function receive() {
-        var received = global.exports, id;
+        var id, ids = global.exports;
         global.exports = null;
-        for (id in received) {
-            log("received", id);
-            entry(id).module = entry(id).module || received[id];
+        for (id in ids) {
+            log("received ", id);
+            entry(id).module = entry(id).module || ids[id];
         }
         retry();
     }
+
+    require(lib_id[1]);
 
 })(window, document);
