@@ -60,7 +60,7 @@ def read_file(id):
 
 def get_relative_id():
     (dir, _) = path.split(env["SCRIPT_NAME"])
-    uri = env["REQUEST_URI"]
+    uri = env["REQUEST_URI"].split("#")[0]
     if uri.index(dir) == 0:
         uri = uri[len(dir):]
     return _min_regexp.sub("", uri[1:])
