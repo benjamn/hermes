@@ -71,7 +71,7 @@
     function absolutize(rel_id, abs_id) {
         if (/^\./.test(rel_id)) {
             rel_id = abs_id + "/../" + rel_id;
-            while (rel_id != (abs_id = rel_id.replace(/[^\/]+\/\.\.\/|\.\//, "")))
+            while (rel_id != (abs_id = rel_id.replace(/(\/)\.?\/|[^\/]+\/\.\.\//, "$1")))
                 rel_id = abs_id;
         }
         return rel_id;
