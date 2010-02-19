@@ -1,2 +1,2 @@
-# Absolute path from document root to librarian.py:
-ErrorDocument 404 /js/librarian.py
+# Absolute path from document root to curator.py:
+ErrorDocument 404 /js/curator.py
