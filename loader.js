@@ -1,7 +1,7 @@
 (function(global, doc) {
     /**
-    ** hypatia.js: Chaste JavaScript Module Loader
-    * ============================================
+    ** loader.js: Tiny, Tidy, Client-Side JavaScript Module Loader
+    * ============================================================
     * License: MIT with one amendment. If you succeed in shrinking the
     *          compressed size of this file without impeding readability,
     *          notify bn@cs.stanford.edu. Using a more compressible
@@ -13,21 +13,20 @@
         nodeName = "script",
         script, scripts = doc[gebtn](nodeName),
         i = scripts.length,
-        attr = "require",
         lib_id,
         required = {};
 
     while (script = scripts.item(--i))
-        if (lib_id = script.getAttribute(attr)) {
+        if (lib_id = script.getAttribute("require")) {
             lib_id = lib_id.split("#");
-            script.removeAttribute(attr);
+            script.parentNode.removeChild(script);
             break;
         }
 
-    /*function log() {
+    function log() {
         try { console.log.apply(console, arguments) }
         catch (x) {}
-    }*/
+    }
 
     function entry(id) {
         return entry[id="#"+id] || (entry[id] = {});
@@ -36,24 +35,25 @@
     function raise(x) { throw x }
 
     function require(id) {
-        //log("requiring", id);
-        var e = entry(id);
+        log("requiring", id);
+        var e = entry(id),
+            module = e.module;
         if (!e.exports) {
-            if (e.module) try {
-                //log("evaluating", id);
-                (1,e.module)(function(rel_id) {
+            if (module) try {
+                log("evaluating", id);
+                module(function(rel_id) {
                     return require(absolutize(rel_id, id)) || raise(e);
                 }, e.exports = {});
-                //log("completed", id);
+                log("completed", id);
                 retry();
             } catch (x) {
-                //log("deferring", id, x);
+                log("deferring", id, x);
                 delete e.exports;
                 x == e ? required[id] = e
                        : raise(x);
             } else if (!e.requested) {
                 (required[id] = e).requested = 1;
-                //log("requesting", id);
+                log("requesting", id);
                 var script = doc.createElement(nodeName);
                 try { script.addEventListener("load", receive, false) }
                 catch (x) {
@@ -81,7 +81,7 @@
         var id, ids = required;
         required = {};
         for (id in ids) {
-            //log("retrying", id);
+            log("retrying", id);
             require(id);
         }
     }
@@ -90,7 +90,7 @@
         var id, ids = global["exports"];
         global["exports"] = null;
         for (id in ids) {
-            //log("received", id);
+            log("received", id);
             entry(id).module = entry(id).module || ids[id];
         }
         retry();
@@ -98,4 +98,4 @@
 
     require(lib_id[1]);
 
-})(window, document);
+})(this, document);
