@@ -1,7 +1,7 @@
 (function(global, doc) {
     /**
-    ** HERMES: Fleet-Footed, Fully-Sealed JavaScript Module System
-    * ============================================================
+    ** hypatia.js: Chaste JavaScript Module Loader
+    * ============================================
     * License: MIT with one amendment. If you succeed in shrinking the
     *          compressed size of this file without impeding readability,
     *          notify bn@cs.stanford.edu. Using a more compressible
@@ -24,10 +24,10 @@
             break;
         }
 
-    function log() {
+    /*function log() {
         try { console.log.apply(console, arguments) }
         catch (x) {}
-    }
+    }*/
 
     function entry(id) {
         return entry[id="#"+id] || (entry[id] = {});
@@ -36,24 +36,24 @@
     function raise(x) { throw x }
 
     function require(id) {
-        log("requiring", id);
+        //log("requiring", id);
         var e = entry(id);
         if (!e.exports) {
             if (e.module) try {
-                log("evaluating", id);
+                //log("evaluating", id);
                 (1,e.module)(function(rel_id) {
                     return require(absolutize(rel_id, id)) || raise(e);
                 }, e.exports = {});
-                log("completed", id);
+                //log("completed", id);
                 retry();
             } catch (x) {
-                log("deferring", id, x);
+                //log("deferring", id, x);
                 delete e.exports;
                 x == e ? required[id] = e
                        : raise(x);
             } else if (!e.requested) {
                 (required[id] = e).requested = 1;
-                log("requesting", id);
+                //log("requesting", id);
                 var script = doc.createElement(nodeName);
                 try { script.addEventListener("load", receive, false) }
                 catch (x) {
@@ -81,7 +81,7 @@
         var id, ids = required;
         required = {};
         for (id in ids) {
-            log("retrying", id);
+            //log("retrying", id);
             require(id);
         }
     }
@@ -90,7 +90,7 @@
         var id, ids = global["exports"];
         global["exports"] = null;
         for (id in ids) {
-            log("received", id);
+            //log("received", id);
             entry(id).module = entry(id).module || ids[id];
         }
         retry();
