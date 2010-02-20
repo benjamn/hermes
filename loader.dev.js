@@ -1,4 +1,4 @@
-(function(global, doc) {
+(function(global, doc, undefined) {
     /**
     ** loader.js: Tiny, Tidy, Client-Side JavaScript Module Loader
     * ============================================================
@@ -48,8 +48,8 @@
                 retry();
             } catch (x) {
                 log("deferring", id, x);
-                delete e.exports;
-                x == e ? required[id] = e
+                e.exports = undefined;
+                e == x ? required[id] = e
                        : raise(x);
             } else if (!e.requested) {
                 (required[id] = e).requested = 1;
@@ -88,7 +88,7 @@
 
     function receive() {
         var id, ids = global["exports"];
-        global["exports"] = null;
+        global["exports"] = undefined;
         for (id in ids) {
             log("received", id);
             entry(id).module = entry(id).module || ids[id];
