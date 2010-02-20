@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/home/newmanb/local/bin/python
 
 import httplib, urllib
-from os import path, environ as env
+from os import chdir, path, environ as env
 import re
 
 _min_suffix = ".min.js"
@@ -16,60 +16,85 @@ _postamble = "};"
 _require_regexp = re.compile(r"require\([\"'](?P<id>[\w\/\.]*?)[\"']\)", re.M)
 _files = {}
 
+def is_valid(id):
+    return path.normpath(id) == id and id[0] != "/"
+
+def read_file(id):
+    if not is_valid(id):
+        return "    // Invalid module ID"
+    if id not in _files:
+        _files[id] = open(id + ".js").read().strip()
+    return _files[id]
+
+def deps(id):
+    result = set()
+    try:
+        content = read_file(id)
+    except:
+        return result
+    for match in _require_regexp.finditer(content):
+        req_id = match.group("id")
+        if (req_id[0] == "."):
+            req_id = path.normpath(path.join(id, "..", req_id))
+        if is_valid(req_id):
+            result.add(req_id)
+    return result
+
 def dep_closure(*ids):
     result = set(ids)
     while 1:
-        count = 0
+        increase = 0
         ids = [id for id in result]
         for id in ids:
             before = len(result)
             result.update(deps(id))
-            count += len(result) - before
-        if count == 0:
+            increase += len(result) - before
+        if increase == 0:
             break
     return result
 
 def wrap_modules(*ids):
-    wms = [_template % (id, read_file(id))
-           for id in dep_closure(*ids)]
+    wms = []
+    closure = dep_closure(*ids)
+    for id in closure:
+        try:
+            content = read_file(id)
+            wms.append(_template % (id, content))
+        except:
+            pass
     return ("/*\n" +
-            str(dep_closure(*ids)) +
+            str(closure) +
             "\n*/\n" +
             _preamble +
             _separator.join(wms) +
             _postamble)
 
-def deps(id):
-    content = read_file(id)
-    result = set()
-    for match in _require_regexp.finditer(content):
-        req_id = match.group("id")
-        if (req_id[0] == "."):
-            req_id = path.normpath(path.join(id, "..", req_id))
-        result.add(req_id)
-    return result
+def longest_common_prefix(str1, str2):
+    limit = min(len(str1), len(str2))
+    for i in range(limit):
+        if str1[i] != str2[i]:
+            return i
+    return limit
 
-def read_file(id):
-    if id not in _files:
-        try:
-            content = open(id + ".js").read().strip()
-        except:
-            return "    // This module doesn't really exist, but, hey, you asked for it!"
-        _files[id] = content
-    return _files[id]
-
-def get_relative_id():
+def cgi_get_id():
     (dir, _) = path.split(env["SCRIPT_NAME"])
     uri = env["REQUEST_URI"].split("#")[0]
-    if uri.index(dir) == 0:
-        uri = uri[len(dir):]
-    return _min_regexp.sub("", uri[1:])
+    uri = uri[longest_common_prefix(dir + "/", uri):]
+    return _min_regexp.sub("", uri)
 
-def render():
-    id = get_relative_id()
-    return wrap_modules(id)
+def argv_get_id():
+    from sys import argv
+    return argv[1]
 
-print "Content-Type: application/javascript"
-print "Status: 200 OK"
-print
-print render()
+def respond():
+    try:
+        id = cgi_get_id()
+        print "Content-Type: application/javascript"
+        print "Status: 200 OK"
+        print
+    except:
+        chdir(path.dirname(__file__))
+        id = argv_get_id()
+    print wrap_modules(id.strip())
+
+respond()

@@ -11,7 +11,7 @@ when a user visits your site.  That's always nice.
 
 The "require" attribute provides two pieces of information, delimited by
 the '#' character.  The first should be a URL pointing to the directory
-that contains librarian.py.  This directory does not have to be hosted at
+that contains curator.py.  This directory does not have to be hosted at
 the same domain as loader.js.  The second half of the attribute is the
 absolute id of the first module to load.
 
