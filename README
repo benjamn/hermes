@@ -1,8 +1,8 @@
 To use loader.js, include the following <script> tag in an HTML document,
 changing the attribute values as appropriate:
 
-  <script src="http://somewhere.com/path/to/loader.js"
-          require="/module/root/directory#absolute/module/id">
+  <script src="/uri/of/loader.js"
+          require="/uri/of/lib#main/module/id">
   </script>
 
 Since loader.js is a static file, you can load it from anywhere.  The more
@@ -10,11 +10,21 @@ people who load it from the same place, the more likely it is to be cached
 when a user visits your site.  That's always nice.
 
 The "require" attribute provides two pieces of information, delimited by
-the '#' character.  The first should be a URL pointing to the directory
-that contains curator.py.  This directory does not have to be hosted at
-the same domain as loader.js.  The second half of the attribute is the
-absolute id of the first module to load.
+the '#' character.  The first should be a URI (absolute or relative,
+whatever you want) pointing to the directory that contains curator.py (or
+a directory containing all possible paths/to/modules.min.js that you might
+require).  This directory does not have to be hosted at the same domain as
+loader.js.  The second half of the attribute is the absolute ID of the
+first module to load.
 
-If one were to replace the '#' in the "require" attribute with a '/', and
-append ".min.js", the resulting URL would identify the JavaScript file
-containing the initial module.
+The curator.py script is intended to serve as a dynamic handler for 404
+errors.  When loader.js requests a file called some/module/id.min.js,
+then, assuming this file does not exist, the web server should delegate to
+curator.py, which will look for a file called some/module/id.js and wrap
+its contents in some boilerplate that loader.js understands.  In
+production, the output of curator.py should be saved as an actual file
+called some/module/id.min.js to avoid the overhead of script execution and
+fully exploit the web server's static file-serving optimization abilities
+(gzip, etags, cache headers, &c.).  See the included .htaccess file for an
+example of how to configure curator.py as an ErrorDocument under the
+Apache webserver.
