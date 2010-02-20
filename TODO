@@ -1,0 +1,6 @@
+curator.py:
+x Make the script work from the command line as well.
+- Devise a mechanism for bundling a fully static distribution.
+
+loader.js:
+o Shorten that shit.
